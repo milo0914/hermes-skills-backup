@@ -1,0 +1,46 @@
+{
+  "name": "@openclaw/firecrawl-mcp-skill",
+  "version": "1.0.0",
+  "description": "Firecrawl MCP Server integration for OpenClaw with browser automation",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "lint": "eslint . --ext .ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@openclaw/core": "^2026.2.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.2.0"
+  },
+  "keywords": [
+    "openclaw",
+    "openclaw-skill",
+    "firecrawl",
+    "mcp",
+    "web-scraping",
+    "browser-automation"
+  ],
+  "author": "OpenClaw Community",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openclaw-community/firecrawl-mcp-skill"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

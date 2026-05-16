@@ -1,0 +1,36 @@
+{
+  "mcpServers": {
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "transport": "stdio",
+      "env": {
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}",
+        "FIRECRAWL_RETRY_MAX_ATTEMPTS": "3",
+        "FIRECRAWL_RETRY_INITIAL_DELAY": "1000",
+        "FIRECRAWL_RETRY_MAX_DELAY": "10000",
+        "FIRECRAWL_RETRY_BACKOFF_FACTOR": "2",
+        "FIRECRAWL_CREDIT_WARNING_THRESHOLD": "1000",
+        "FIRECRAWL_CREDIT_CRITICAL_THRESHOLD": "100"
+      },
+      "autoStart": true,
+      "healthCheck": {
+        "enabled": true,
+        "interval": 30000,
+        "timeout": 5000
+      }
+    }
+  },
+  "fallback": {
+    "enabled": true,
+    "http": {
+      "baseUrl": "https://api.firecrawl.dev/v1",
+      "timeout": 30000
+    }
+  },
+  "logging": {
+    "level": "info",
+    "includeTimestamps": true,
+    "includeCreditUsage": true
+  }
+}
