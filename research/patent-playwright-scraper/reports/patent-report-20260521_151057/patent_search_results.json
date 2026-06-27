@@ -1,0 +1,66 @@
+{
+  "queries": [
+    "Merck KGaA negative dielectric liquid crystal patent 2020..2026",
+    "Merck negative permittivity liquid crystal compound patent",
+    "Merck KGaA Δε < 0 liquid crystal material patent",
+    "Merck liquid crystal VA IPS FFS patent 2020..2026"
+  ],
+  "count": 9,
+  "timestamp": "2026-05-19T23:55:02.722812",
+  "results": [
+    {
+      "url": "https://patents.google.com/patent/US8399073B2/en",
+      "title": "US8399073B2 - Liquid-crystal medium - Google Patents",
+      "description": "The invention relates to a liquid-crystalline medium having negative dielectric anisotropy which comprises at least one compound of the formula I in which R ...",
+      "source_query": "Merck KGaA negative dielectric liquid crystal patent 2020..2026"
+    },
+    {
+      "url": "https://www.ipqwery.com/ipowner/en/owner/ip/315-merck-patent-gmbh.html",
+      "title": "Merck Patent GmbH - IPqwery",
+      "description": "17. FERROELECTRIC NEMATIC LIQUID CRYSTALLINE MEDIUM. Application Number, EP2025078701. Publication Number, 2026/077921. Status, In Force. Filing Date, 2025-10- ...",
+      "source_query": "Merck KGaA negative dielectric liquid crystal patent 2020..2026"
+    },
+    {
+      "url": "https://patents.justia.com/inventor/kazuaki-tarumi",
+      "title": "Kazuaki Tarumi Inventions, Patents and Patent Applications - Justia ...",
+      "description": "Patent number: 9550942 · Abstract: The present invention relates to nematic liquid-crystal media of negative dielectric anisotropy which have a peak time (tmax.) ...",
+      "source_query": "Merck KGaA negative dielectric liquid crystal patent 2020..2026"
+    },
+    {
+      "url": "https://patents.justia.com/assignee/merck-patent-gmbh",
+      "title": "Patents Assigned to Merck Patent GmbH",
+      "description": "Liquid crystal medium. Patent number: 12606745. Abstract: Liquid crystal (LC) media having negative dielectric anisotropy, the use thereof in an electro ...",
+      "source_query": "Merck negative permittivity liquid crystal compound patent"
+    },
+    {
+      "url": "https://patents.google.com/patent/CN101407719B/en",
+      "title": "Negative dielectric anisotropy liquid crystal material ...",
+      "description": "This patent provide a kind of optical anisotropy less 1,3-dioxane negative dielectric anisotropic liquid crystal compound and method of manufacture thereof.",
+      "source_query": "Merck negative permittivity liquid crystal compound patent"
+    },
+    {
+      "url": "https://patents.justia.com/patents-by-us-classification/349/182",
+      "title": "Cell Containing Liquid Crystal Of Specific Composition ...",
+      "description": "Search for Cell Containing Liquid Crystal Of Specific Composition Patents and Patent Applications (Class 349/182) Filed with the USPTO.",
+      "source_query": "Merck negative permittivity liquid crystal compound patent"
+    },
+    {
+      "url": "https://patents.google.com/patent/US5576867A/en",
+      "title": "US5576867A - Liquid crystal switching elements having a ...",
+      "description": "An electro-optical display device comprising a liquid crystal layer achieves switching using an electric field component which is predominantly parallel to ...",
+      "source_query": "Merck negative permittivity liquid crystal compound patent"
+    },
+    {
+      "url": "https://patents.google.com/patent/WO2010022891A1/en",
+      "title": "Liquid crystalline medium and liquid crystal display - Google Patents",
+      "description": "The Δε, at 1 kHz and 20 0C, of the liquid crystal medium according to the invention preferably is 10 or more, preferably 15 or more, more preferably 20 or ...",
+      "source_query": "Merck KGaA Δε < 0 liquid crystal material patent"
+    },
+    {
+      "url": "https://patents.google.com/patent/US7369204B1/en",
+      "title": "US7369204B1 - Fast response liquid crystal mode - Google Patents",
+      "description": "The VA-FFS mode is capable of generating very fast optical modulation without the use of very thin cell gap. IA major feature of this LC mode is that it has ...",
+      "source_query": "Merck liquid crystal VA IPS FFS patent 2020..2026"
+    }
+  ]
+}

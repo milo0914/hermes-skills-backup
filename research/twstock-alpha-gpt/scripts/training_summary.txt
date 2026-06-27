@@ -1,0 +1,17 @@
+============================================================
+台股 GRPO Regime-Aware 因子訓練摘要
+============================================================
+
+Regime: mid_cap_tech
+  Formula: SP500_CLOSE
+  Reward: 1.3729
+  Train IC: 0.1373
+  Val IC: 0.1816
+  IC Gap: -0.0443
+  Overfit: NO
+
+Walk-Forward 2882:
+  Mean IC: 0.0710
+  IC t-stat: 0.54
+  Positive folds: 80.0%
+

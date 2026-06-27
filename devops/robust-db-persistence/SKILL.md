@@ -1,0 +1,291 @@
+---
+name: robust-db-persistence
+version: 1.0.0
+category: devops
+description: 強化 DB 寫入機制 — 確保會話創建時立即寫入 DB，消除 JSON 與 SQLite 不同步問題
+tags: [session, database, persistence, sqlite, json-sync, hermes-core, huggingface]
+author: hermes-agent
+created: 2026-05-28
+status: implementation-plan
+---
+
+# 強化 DB 寫入機制 — 會話即時持久化方案
+
+## ⚠️ Known Gap: Web UI DB Not Synced
+
+The 3-phase pipeline operates on `~/.hermes/state.db` (Hermes CLI DB) only. The Web UI uses a **separate database** at `~/.hermes-web-ui/hermes-web-ui.db` with a different schema. The Web UI's `syncAllHermesSessionsOnStartup` only runs when the Web UI DB is empty — once populated, new CLI-side sessions never appear in the Web UI.
+
+**Symptom**: `hermes sessions` shows 300+ sessions, Web UI shows ~1 session.
+**Root cause**: Two separate SQLite files with no ongoing sync.
+**See**: `hermes-session-analysis` skill → `references/webui-dual-db-architecture.md` for full details and proposed solutions.
+
+**Proposed Phase D** (not yet implemented): Incremental sync from `state.db` → `hermes-web-ui.db` with column mapping. This would be added to the backup_sessions cron after Phase C.
+
+## 相關技能
+- `huggingface-sync` — HF Dataset 同步（Phase C 的執行者）
+- `data-persistence` — 數據持久化總覽
+- `github-skills-backup` — GitHub skills 備份與還原（自癒機制的 GitHub clone 來源）
+
+## 參考文件
+- `references/pipeline-architecture.md` — 3-phase pipeline 架構詳解、組件清單、數據源不一致分析
+- `references/cron-self-heal-v5-fix.md` — v4→v5 自癒粒度修正：category-level → skill-level，含根因分析與修正程式碼
+
+## HF Space 重建故障歷史與自癒設計
+
+### 2026-06-07：HF Space 重建導致 cron job 全部失效
+
+**問題**：HF Space 容器重建後，本 skill 的兩個 cron job 均失效：
+- `session-backup` (backup-sessions.py, job_id=6527076f63be) → Script not found
+- `restore-sessions-from-hf` (restore-from-hf.py, job_id=50a3a8b1dea5) → Script not found
+
+**根因**：
+1. HF Space 重建清除 `/data/.hermes/scripts/` 目錄
+2. Cron 的 `script` 欄位只接受相對路徑（解析到 `/data/.hermes/scripts/`）
+3. `_run_job_script()` 拒絕絕對路徑和 symlink 逸出
+4. 舊版 v3 設計依賴獨立的 agent cron `restore-scripts-after-rebuild`，但它本身也需要 scripts/ 中的入口 → 死鎖
+
+**修正（v4 雙層自癒架構）**：
+- 每個 cron wrapper 自含 GitHub clone 還原邏輯
+- 執行前檢查 skills/ → 不存在則從 GitHub clone → 重建所有 scripts/ wrapper
+- 移除無法自舉的 restore-scripts agent cron
+- 任一 cron 先觸發即連帶修復全部
+
+#### 2026-06-10：v4 category-level 粒度缺陷導致自癒失敗
+
+**問題**：cron 6527076f63be 報 `Script not found at .../backup_sessions.py`，但自癒邏輯執行後仍無法修復。
+
+**根因**：`heal_skills_from_github()` 只檢查 category 目錄（如 `devops/`）是否存在：
+```python
+# v4 錯誤邏輯
+if not os.path.exists(cat_dst):        # 如果 devops/ 已存在...
+    shutil.copytree(cat_src, cat_dst)   # ...整個跳過！
+```
+當 `devops/` 目錄因其他 skill 存在而不為空時，即使 `robust-db-persistence` 子目錄缺失，自癒也會跳過整個 category → 還原失敗 → `backup_sessions.py` 永遠找不到。
+
+**修正（v5 skill-level 粒度）**：
+```python
+# v5 正確邏輯：先檢查 category，再逐 skill 檢查
+if not os.path.exists(cat_dst):
+    shutil.copytree(cat_src, cat_dst)   # 整個 category 缺失 → 全複製
+else:
+    for skill_name in os.listdir(cat_src):   # category 存在 → 逐 skill 檢查
+        skill_src = os.path.join(cat_src, skill_name)
+        skill_dst = os.path.join(cat_dst, skill_name)
+        if os.path.isdir(skill_src) and not os.path.exists(skill_dst):
+            shutil.copytree(skill_src, skill_dst)  # 只複製缺失的 skill
+```
+
+**同步修正**：`heal_scripts_dir()` 的 ALL_CRON_SCRIPTS 映射表也一併更新，確保所有 6 個 wrapper 正確映射。
+
+**Cron Wrapper 對照表**：
+
+| Cron Job | Job ID | scripts/ wrapper | skills/ 實際腳本 |
+|----------|--------|-----------------|-----------------|
+| Session Backup | 6527076f63be | `backup-sessions.py` | `devops/robust-db-persistence/scripts/cron-backup-sessions.py` |
+| Restore from HF | 50a3a8b1dea5 | `restore-from-hf.py` | `devops/robust-db-persistence/scripts/cron-restore-from-hf.py` |
+
+**自癒流程**：
+1. Wrapper 啟動 → 檢查 `/data/.hermes/skills/devops/robust-db-persistence/scripts/` 是否存在
+2. 若不存在 → 提取 GITHUB_TOKEN（從 /proc/1/environ）→ clone hermes-skills-backup → 還原 skills/
+3. 重建 scripts/ 中所有缺失的 wrapper（ALL_CRON_SCRIPTS 列表）
+4. exec 到實際腳本
+
+**關鍵原則**：
+- 絕不用 symlink（cron 路徑檢查會擋）
+- Wrapper 是副本（非 symlink），HF 重建後消失但自癒會重建
+- 新增 cron job 時必須更新所有 wrapper 的 ALL_CRON_SCRIPTS 列表
+- GITHUB_TOKEN 在 /proc/1/environ 中，絕不說「未設定」
+
+**手動修復**：
+```bash
+# 方法 A：從 skills/ 複製 wrapper
+cp /data/.hermes/skills/devops/robust-db-persistence/scripts/cron-backup-sessions.py \
+  /data/.hermes/scripts/backup-sessions.py
+cp /data/.hermes/skills/devops/robust-db-persistence/scripts/cron-restore-from-hf.py \
+  /data/.hermes/scripts/restore-from-hf.py
+chmod +x /data/.hermes/scripts/backup-sessions.py /data/.hermes/scripts/restore-from-hf.py
+
+# 方法 B：觸發任一 cron job 讓自癒邏輯修復全部
+# cronjob(action='run', job_id='6527076f63be')
+```
+
+## 問題分析
+
+當前系統的 DB 寫入是延遲的（deferred），導致大量會話只存在 JSON 備份中而未寫入 SQLite：
+
+### 數據佐證
+
+| 指標 | 數值 | 說明 |
+|------|------|------|
+| SQLite DB 會話數 | 185 | 唯一可靠查詢源 |
+| JSON 備份會話數 | 471 | 包含所有歷史會話 |
+| 僅在 JSON 中 | 85 | 從未寫入 DB 的「孤兒會話」 |
+| eph_ 臨時會話 | 37 | 全部未寫入 DB |
+| 日期格式會話 | 39 | 全部未寫入 DB |
+
+### 根本原因
+
+1. **延遲寫入設計**（`run_agent.py` L1854）：
+   ```python
+   self._session_db_created = False  # DB row deferred to run_conversation()
+   ```
+   DB row 要等到 `_flush_messages_to_session_db()` 才真正寫入，如果在此之前進程崩潰或中斷，會話就只在 JSON 中。
+
+2. **SQLite 鎖衝突**（`run_agent.py` L2442-2447）：
+   ```python
+   except Exception as e:
+       # Transient failure (e.g. SQLite lock). Keep _session_db alive —
+       # _session_db_created stays False so next run_conversation() retries.
+   ```
+   並發寫入時 SQLite 鎖定，寫入失敗後重試但如果 session 在重試前結束，會話就丟失。
+
+3. **JSON 備份獨立運作**：JSON 文件由不同的寫入路徑管理，與 DB 無同步保證。
+
+4. **Web UI 僅查詢 DB**：`list_sessions_rich()` 只查 SQLite，所以 DB 中不存在的會話在 UI 中「消失」。
+
+### 影響的代碼位置
+
+| 文件 | 行號 | 當前行為 | 問題 |
+|------|------|----------|------|
+| `run_agent.py` | L1854 | `_session_db_created = False` | 延遲寫入 |
+| `run_agent.py` | L2427-2447 | `_ensure_db_session()` | 首次 flush 才寫入 |
+| `run_agent.py` | L4469-4518 | `_flush_messages_to_session_db()` | 延遲觸發點 |
+| `run_agent.py` | L10072-10099 | compression 後重建 session | 重置 `_session_db_created` |
+| `hermes_state.py` | L713+ | `create_session()` | 無冪等性保護 |
+| `hermes_state.py` | L1160+ | `list_sessions_rich()` | 僅查 DB |
+| `gateway/session.py` | L687+ | `_ensure_loaded()` | JSON 與 DB 獨立 |
+
+## 實現方案
+
+### Phase 1：Eager DB Write — 會話創建即寫入
+
+**核心改動：將 `_session_db_created = False` 改為在 `__init__` 中立即寫入**
+
+```python
+# run_agent.py — AIAgent.__init__() 修改
+
+# 現有（L1854）：
+self._session_db_created = False  # DB row deferred to run_conversation()
+
+# 改為：
+self._session_db_created = False
+if self._session_db and self.session_id:
+    try:
+        self._ensure_db_session()
+    except Exception as e:
+        logger.warning("Eager DB session creation failed (will retry): %s", e)
+```
+
+**修改 `_ensure_db_session()` 使其冪等**：
+
+```python
+def _ensure_db_session(self) -> None:
+    """Create session DB row. Idempotent — safe to call multiple times."""
+    if self._session_db_created or not self._session_db:
+        return
+    try:
+        # 檢查是否已存在（冪等性）
+        existing = self._session_db.get_session(self.session_id)
+        if existing:
+            self._session_db_created = True
+            return
+        
+        self._session_db.create_session(
+            session_id=self.session_id,
+            source=self.platform or os.environ.get("HERMES_SESSION_SOURCE", "cli"),
+            model=self.model,
+            model_config=self._session_init_model_config,
+            system_prompt=self._cached_system_prompt,
+            user_id=self._user_id,
+            parent_session_id=self._parent_session_id,
+        )
+        self._session_db_created = True
+    except Exception as e:
+        logger.warning("Session DB creation failed (will retry next turn): %s", e)
+```
+
+**修改 `hermes_state.py` — `create_session()` 加入 UPSERT**：
+
+```python
+def create_session(self, session_id, source, model, ...):
+    """Create a session record. Uses INSERT OR IGNORE for idempotency."""
+    now = time.time()
+    try:
+        self.conn.execute("""
+            INSERT OR IGNORE INTO sessions 
+            (id, source, model, model_config, system_prompt, user_id, 
+             parent_session_id, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (session_id, source, model, model_config, system_prompt,
+              user_id, parent_session_id, now, now))
+        self.conn.commit()
+    except sqlite3.IntegrityError:
+        # Session already exists — this is fine (idempotent)
+        pass
+```
+
+### Phase 2：JSON↔DB 雙向同步（合併進 session-backup cron）
+
+**⚠️ 重要：不要用獨立 daemon 跑 JSON→DB 同步再串 HF 上傳！**
+
+sync_daemon.py 本身只寫本地 SQLite（不觸發 HF commit），但如果把高頻 daemon（每 5 分鐘）和 `data_sync.py` 的 HF 上傳串接，每次 daemon cycle 都可能觸發一次全量 `upload_large_folder()` commit → 每天約 288 次 commit，遠超 HF 免費層級建議（每小時 100-200 API 調用、commit 間隔 >1 分鐘）。
+
+**正確架構：合併進現有 session-backup cron（每 6hr）的 3-phase pipeline：**
+
+```
+session-backup cron (每 6hr)
+  ├─ Phase A: JSON → DB  （sync_daemon 功能：補孤兒會話）
+  ├─ Phase B: DB → JSON  （backup_sessions 功能：增量 hash 比對備份）
+  └─ Phase C: DB → HF    （可選，僅在 HF_DATASET_REPO + HF_TOKEN 設定時）
+```
+
+**優勢：**
+- 整個 6hr 週期只產生 1 次 HF commit（而非 daemon 模式的 288 次/天）
+- 先補缺漏再備份，保證 JSON 和 DB 雙向一致
+- 不需要獨立 daemon 進程（省資源、減少鎖衝突）
+- Phase A 和 Phase B 共用同一個 DB connection，避免中途斷開
+
+**現有腳本位置：**
+- `scripts/sync_daemon.py` — JSON→DB 同步（保留作為 `--once` 單次執行工具）
+- `scripts/sync_json_to_db.py` — 另一個單次同步工具（含 dry-run 和分類統計）
+- `/data/.hermes/bin/backup_sessions.py` — 現有 cron 的 DB→JSON 備份腳本
+- `/app/src/data_sync.py` — HF 上傳模組（`upload_large_folder()` 全量覆寫）
+
+**建議的改版 backup_sessions.py 流程：**
+
+```python
+def main():
+    # Phase A: JSON → DB（補孤兒會話）
+    orphan_stats = sync_json_to_db()  # 復用 sync_daemon.py 的 sync_pass()
+
+    # Phase B: DB → JSON（增量 hash 備份，現有邏輯）
+    backup_stats = backup_db_to_json()
+
+    # Phase C: DB → HF（可選，條件觸發）
+    if os.environ.get('HF_DATASET_REPO') and os.environ.get('HF_TOKEN'):
+        hf_stats = sync_db_to_hf()
+    else:
+        hf_stats = {"skipped": True}
+
+    print(f"Phase A (JSON→DB): {orphan_stats}")
+    print(f"Phase B (DB→JSON): {backup_stats}")
+    print(f"Phase C (DB→HF):   {hf_stats}")
+```
+
+**⚠️ Pitfall：import_session 中每個 session 單獨 commit**
+
+sync_daemon.py 的 `import_session()` 對每個 session 執行 `db.commit()`（L93）。當孤兒會話量大（如首次同步 85+ sessions）時，這會產生 85+ 次 SQLite commit。建議改為 batch commit：
+
+```python
+# 改進：批量 commit（在 sync_pass 層級控制）
+def import_session(db, session_id, filepath, commit=False):
+    # ... INSERT OR IGNORE 邏輯不變 ...
+    if commit:
+        db.commit()
+    return True
+
+# sync_pass 中：
+for sid in orphan_ids:
+    import_session(db, sid, filepath, commit=False)
+db.commit()  # 全部導入後一次 commit
+```

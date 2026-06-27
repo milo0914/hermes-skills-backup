@@ -1,0 +1,15 @@
+{
+  "id": "mhhuang14/twstock-grpo-v6-14-remove-pytorch-downgrade",
+  "title": "TWStock GRPO v6 14 remove pytorch downgrade",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "mhhuang14/twstock-v6-0-real-data-20stocks-5y"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "accelerator": "GPU_T4"
+}

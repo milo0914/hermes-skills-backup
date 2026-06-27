@@ -1,0 +1,15 @@
+{
+  "id": "mhhuang14/facefusion-kaggle-gpu-t4-v3",
+  "title": "FaceFusion Kaggle GPU T4 v3",
+  "code_file": "facefusion_kaggle_v3.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": ["mhhuang14/facefusion-models-330"],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": [],
+  "machine_shape": "NvidiaTeslaT4"
+}

@@ -1,0 +1,11 @@
+{
+  "job_id": "b95c725a43ee",
+  "name": "kaggle-grpo-v69-advantage-monitor",
+  "skill": "kaggle-api",
+  "skills": ["kaggle-api", "twstock-grpo-v6-changelog"],
+  "schedule": "every 30m",
+  "repeat": "forever",
+  "deliver": "local",
+  "next_run_at": "2026-06-15T11:33:25.104650+08:00",
+  "prompt": "監控 Kaggle 上 twstock-grpo-regime-aware-factor-training-v6-9 notebook 的訓練輸出，特別關注 advantage collapse 問題。\n\n任務：\n1. 使用 Kaggle API 獲取 kernel 的最新執行狀態和輸出日誌\n2. 分析輸出中是否有 advantage collapse 跡象：\n   - \"Adv near-zero\" 或 \"advantage std\" 接近 0\n   - \"Z-score\" 相關警告\n   - reward 方差極小 (std < 0.01)\n   - 所有 rewards 接近相同值\n3. 檢查 regime 訓練是否正常（所有 4 個 regime 都有訓練，不只是 MID_CAP_TECH）\n4. 檢查 Multi-Objective Reward 是否正常運作（IC、Sharpe、MDD、Turnover 都有貢獻）\n5. 若發現問題，輸出具體的修改建議參數：\n   - group_size 調整\n   - advantage_method 確認\n   - reward 權重調整\n   - train_steps 調整\n   - temperature/gumbel_noise/diversity_penalty 參數\n6. 將分析結果和建議儲存到本地檔案供後續修改 notebook 使用\n\nKernel URL: https://www.kaggle.com/mhhuang14/twstock-grpo-regime-aware-factor-training-v6-9\nKernel slug: mhhuang14/twstock-grpo-regime-aware-factor-training-v6-9"
+}

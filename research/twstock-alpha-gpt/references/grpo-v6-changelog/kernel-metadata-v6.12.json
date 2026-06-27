@@ -1,0 +1,14 @@
+{
+  "id": "mhhuang14/twstock-grpo-v6-12-complexity-earlystop-fix",
+  "title": "TWStock GRPO v6.12 Complexity + EarlyStop Fix",
+  "code_file": "twstock-grpo-regime-aware-factor-training-v6-12.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": [
+    "mhhuang14/twstock-v6-0-real-data-20stocks-5y"
+  ],
+  "machine_shape": "NvidiaTeslaT4"
+}

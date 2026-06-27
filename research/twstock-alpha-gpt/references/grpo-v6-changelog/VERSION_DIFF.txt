@@ -1,0 +1,65 @@
+v6.2~v6.8 版本差異 Quick Reference
+====================================
+
+v5.9 (baseline)
+  - KNOWN_REGIMES: 20 stocks, 4 regimes x 5
+  - adapt_finmind_data: 只支援 v1 格式, os.walk
+  - group_size=16(CPU)/16(GPU), entropy_coef=0.08
+  - gumbel_noise_scale=1.0, diversity_penalty=2.0
+  - 找不到資料 → fallback 合成噪聲數據
+  - KNOWN_ISSUE: advantage collapse, os.walk 掃不到巢狀目錄
+
+v6.1 (= v6.2 docstring)
+  - adapt_finmind_data: 支援 Dataset v2 雙格式
+  - 新增 inst_df/margin_df/futures_oi_df/us_indices_df merge
+  - CPU mode 只訓練 MID_CAP_TECH
+  - KNOWN_ISSUE: os.walk 仍可能漏檔
+
+v6.2
+  - 移除所有合成數據 fallback, 找不到 → RuntimeError
+  - os.walk → glob.glob recursive + 多路徑嘗試
+  - /kaggle/input/ 診斷輸出
+  - KNOWN_ISSUE: Dataset 未上傳時 kernel crash
+
+v6.5 (hyperparameter 調整)
+  - group_size: 16→64
+  - batch_size: 128→256
+  - train_steps: 8000→15000
+  - entropy_coef: 0.08→0.15
+  - gumbel_noise_scale: 1.0→1.5
+  - diversity_penalty: 2.0→3.0
+  - KNOWN_ISSUE: T4 OOM risk, entropy 過高不收斂
+
+v6.7 (advantage collapse fix)
+  - auto_detect() CPU group_size=max(,64)
+  - adv_std < 1e-4 → add noise(randn*0.1)
+  - 每 200 step debug print
+  - KNOWN_ISSUE: noise injection 治標不治本
+
+v6.8 (title sync, 整合所有上述修復)
+  - kernel title = 內部版本號
+  - dataset_sources 正確指向 twstock-v6-0-real-data-20stocks-5y
+  - REMAINING: regime-aware reward, CPU all-regime training, multi-obj reward
+
+Dataset 演進
+=============
+v1: twstock-grpo-training-data (400KB, 舊格式, 欄位不一致)
+v2: twstock-v6-0-real-data-20stocks-5y (1.55MB, 5 CSV, 2026-06-14)
+  - Data fetch kernel v4.4 (FinMindAPI REST 直連)
+  - 2311(日月光)已除牌 → 19 檔有效數據
+  - 日期範圍: 2021-01-04 ~ 2026-06-11
+
+FinMind API 映射
+=================
+TaiwanStockInstitutionalInvestorsBuySell → inst_flow.csv
+TaiwanStockMarginPurchaseShortSale       → margin.csv
+TaiwanFuturesInstitutionalInvestors      → futures_oi.csv
+API: https://api.finmindtrade.com/api/v4/data
+Params: dataset, data_id, start_date
+
+Key 文件路徑
+=============
+Notebook v6.8:   references/grpo-regime-aware-factor-training-v6-8.ipynb
+Data fetch v4.4: references/twstock-v6-0-data-fetch-v4.4.py
+Kernel meta:     references/kernel-metadata-v6.8.json
+Fix adapt v6.2:  references/fix_adapt_finmind_v6.2.py

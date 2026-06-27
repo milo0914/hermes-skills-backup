@@ -1,0 +1,176 @@
+{
+  "project": "ai-dig-money",
+  "last_updated": "2026-06-15T16:45:00+08:00",
+  "pipes": {
+    "data_pipe": {
+      "description": "資料抓取與預處理，包括 OHLCV, 期貨, 美股指數, 法人, 融資融券等",
+      "status": "in_progress",
+      "tasks": [
+        {
+          "id": "dp1",
+          "description": "TX futures retail_net_oi 修復 (總OI-法人OI)",
+          "status": "completed",
+          "files": [
+            "fetch_real_data.py"
+          ]
+        },
+        {
+          "id": "dp2",
+          "description": "擴展至20檔股票 (5檔×4 regimes)",
+          "status": "completed",
+          "files": [
+            "fetch_real_data.py"
+          ]
+        },
+        {
+          "id": "dp3",
+          "description": "擴展數據期間至5年+",
+          "status": "completed",
+          "files": [
+            "fetch_real_data.py"
+          ]
+        },
+        {
+          "id": "dp4",
+          "description": "us_indices 日期對齊修復",
+          "status": "completed",
+          "files": [
+            "grpo_regime_training_kaggle.py"
+          ]
+        },
+        {
+          "id": "dp5",
+          "description": "驗證每檔股票外資/投信/自營商資料完整性",
+          "status": "completed",
+          "files": [
+            "validate_institutional_data.py",
+            "fetch_real_data.py"
+          ]
+        },
+        {
+          "id": "dp6",
+          "description": "執行 fetch_all() 抓取20檔股票5年數據",
+          "status": "pending",
+          "files": [
+            "fetch_real_data.py"
+          ]
+        },
+        {
+          "id": "dp7",
+          "description": "執行 validate_institutional_data.py 驗證",
+          "status": "pending",
+          "files": [
+            "validate_institutional_data.py"
+          ]
+        }
+      ]
+    },
+    "filter_pipe": {
+      "description": "Marcus 三重過濾 + Wenty 量價 篩選",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "fp1",
+          "description": "實施 Marcus 三重過濾 (流動性、資金面、基本面)",
+          "status": "pending"
+        },
+        {
+          "id": "fp2",
+          "description": "實施 Wenty 量價策略",
+          "status": "pending"
+        }
+      ]
+    },
+    "grpo_training_pipe": {
+      "description": "GRPO 訓練流程，包括特徵工程、獎勵計算、策略更新",
+      "status": "in_progress",
+      "tasks": [
+        {
+          "id": "gtp1",
+          "description": "RegimeConfig.feature_weights 16→22 (6新因子)",
+          "status": "completed",
+          "files": [
+            "grpo_regime_training_kaggle.py"
+          ]
+        },
+        {
+          "id": "gtp2",
+          "description": "以 v6.10 版本為基礎，進行訓練的參數修改 (GPU T4/P100 支援)",
+          "status": "completed",
+          "files": [
+            "twstock-grpo-regime-aware-factor-training-v6-10.ipynb"
+          ]
+        },
+        {
+          "id": "gtp3",
+          "description": "深度思考如何提高目標 best reward 數值",
+          "status": "in_progress"
+        },
+        {
+          "id": "gtp4",
+          "description": "在GRPORewardCalculator中添胜orized IC计算选项",
+          "status": "completed",
+          "files": [
+            "twstock-grpo-regime-aware-factor-training-v6-10.ipynb"
+          ]
+        },
+        {
+          "id": "gtp5",
+          "description": "实施Sortino ratio作为Sharpe的替代选项",
+          "status": "completed",
+          "files": [
+            "twstock-grpo-regime-aware-factor-training-v6-10.ipynb"
+          ]
+        },
+        {
+          "id": "gtp6",
+          "description": "调整diversity_penalty的阈值从0.9到0.85，增加惩罚系数",
+          "status": "completed",
+          "files": [
+            "twstock-grpo-regime-aware-factor-training-v6-10.ipynb"
+          ]
+        },
+        {
+          "id": "gtp7",
+          "description": "在训练日志中显示各reward组件的贡献度",
+          "status": "completed",
+          "files": [
+            "twstock-grpo-regime-aware-factor-training-v6-10.ipynb"
+          ]
+        }
+      ]
+    },
+    "report_pipe": {
+      "description": "報告生成與發布，包括 Kaggle Dataset 推送、Notebook 更新、績效報告",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "rp1",
+          "description": "推送 Kaggle Dataset v3",
+          "status": "pending"
+        },
+        {
+          "id": "rp2",
+          "description": "更新 Kaggle Notebook 引用新 Dataset",
+          "status": "pending"
+        },
+        {
+          "id": "rp3",
+          "description": "生成訓練結果摘報告",
+          "status": "pending"
+        }
+      ]
+    }
+  },
+  "progress": {
+    "completed_tasks": 11,
+    "total_tasks": 19,
+    "percentage": 58
+  },
+  "next_steps": [
+    "完成 data_pipe 中的 pending 任務 (dp6, dp7)",
+    "開始 filter_pipe 的任務 (fp1, fp2)",
+    "繼續 grpo_training_pipe 的 best reward 優化思考 (gtp3)",
+    "準備 report_pipe 的推送任務 (rp1, rp2, rp3)"
+  ]
+}

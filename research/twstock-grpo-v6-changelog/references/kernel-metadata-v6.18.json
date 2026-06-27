@@ -1,0 +1,21 @@
+{
+  "id": "mhhuang14/grpo-v6-18-composite-score-cpu-single",
+  "id_no": 123438851,
+  "title": "GRPO v6 18 Composite Score CPU Single",
+  "code_file": "grpo-v6-18-composite-score-cpu-single.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [
+    "gpu"
+  ],
+  "dataset_sources": [
+    "mhhuang14/twstock-v6-0-real-data-20stocks-5y"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": []
+}

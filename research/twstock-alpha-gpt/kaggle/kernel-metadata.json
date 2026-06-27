@@ -1,0 +1,10 @@
+{
+  "id": "mhhuang14/twstock-v60-data-fetch-v2",
+  "title": "TWStock v6.0 Data Fetch 20 stocks 5y v2",
+  "code_file": "kaggle_fetch_cpu.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "true",
+  "enable_gpu": "false",
+  "enable_internet": "true"
+}

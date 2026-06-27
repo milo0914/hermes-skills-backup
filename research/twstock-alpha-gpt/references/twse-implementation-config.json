@@ -1,0 +1,133 @@
+{
+  "skill_name": "twstock-alpha-gpt",
+  "description": "台股 AlphaGPT 因子挖掘系統",
+  "data_sources": {
+    "primary": "twstock",
+    "alternative": "finlab-python",
+    "official": "TWSE API (https://openapi.twse.com.tw/)"
+  },
+  "architecture": {
+    "core_components": [
+      "資料獲取層（twstock）",
+      "特徵工程層（6 基礎因子或 12 擴展因子）",
+      "算子語言（12 個算子）",
+      "StackVM 虛擬機器",
+      "Transformer 生成器",
+      "回測評分引擎"
+    ],
+    "model_specs": {
+      "d_model": 64,
+      "nhead": 4,
+      "num_layers": 2,
+      "dim_feedforward": 128,
+      "num_loops": 3,
+      "vocab_size": 18,
+      "max_formula_len": 10
+    }
+  },
+  "training_requirements": {
+    "cpu_only": {
+      "suitable_for": "小型測試（<100 支股票，<1000 步）",
+      "batch_size": 16,
+      "train_steps": 1000,
+      "estimated_time": "2-4 小時",
+      "recommended_stocks": "台灣 50 (0050 成分股)"
+    },
+    "gpu_required": {
+      "suitable_for": "完整訓練（全台股 1000+ 標的）",
+      "batch_size": 128,
+      "train_steps": 20000,
+      "estimated_time": "30-60 分鐘",
+      "min_gpu_memory": "8GB"
+    }
+  },
+  "deployment_options": {
+    "hybrid": {
+      "description": "HF Space 準備資料 + Colab GPU 訓練 + HF Space 推論",
+      "steps": [
+        "1. HF Space: 用 twstock 下載歷史資料",
+        "2. HF Space: 計算 6/12 維因子",
+        "3. 導出到 Google Drive / HuggingFace Dataset",
+        "4. Colab: 載入資料並訓練（GPU）",
+        "5. 導出 best_meme_strategy.json + 模型權重",
+        "6. HF Space: 載入公式，每日盤後執行推論"
+      ]
+    },
+    "cpu_lightweight": {
+      "description": "純 CPU 輕量版（適合快速驗證概念）",
+      "configuration": {
+        "stocks": "台灣 50 (50 支)",
+        "model": "縮小版 (d_model=32, num_layers=1)",
+        "batch_size": 16,
+        "train_steps": 1000
+      }
+    }
+  },
+  "twse_adaptations": {
+    "data_mapping": {
+      "liquidity": "成交量 或 周轉率",
+      "fdv": "市值 = 股本 × 股價",
+      "ohlcv": "twstock.Stock.history"
+    },
+    "trading_rules": {
+      "transaction_fee": 0.00126,
+      "transaction_tax": 0.003,
+      "trade_unit": 1000,
+      "price_limit": 0.10,
+      "settlement": "T+2"
+    },
+    "backtest_thresholds": {
+      "min_turnover": 10000000,
+      "signal_threshold": 0.85,
+      "min_activity": 5
+    }
+  },
+  "factors": {
+    "basic_6": [
+      "ret (對數報酬)",
+      "liq_score (流動性健康度)",
+      "pressure (買賣壓力)",
+      "fomo (成交量加速度)",
+      "dev (價格偏離)",
+      "log_vol (對數成交量)"
+    ],
+    "advanced_12": [
+      "ret",
+      "liq_score",
+      "pressure",
+      "fomo",
+      "dev",
+      "log_vol",
+      "vol_cluster (波動率聚集)",
+      "momentum_rev (動量反轉)",
+      "rel_strength (相對強弱)",
+      "hl_range (高低价振幅)",
+      "close_pos (收盤區間位置)",
+      "vol_trend (成交量趨勢)"
+    ]
+  },
+  "operators": [
+    "ADD", "SUB", "MUL", "DIV",
+    "NEG", "ABS", "SIGN",
+    "GATE", "JUMP", "DECAY",
+    "DELAY1", "MAX3"
+  ],
+  "validation_checklist": [
+    "公式可解釋性：可反編譯為人類可讀表達式",
+    "回測夏普係數 > 1.0（未扣成本）",
+    "訓練集/測試集 IC 差距 < 0.1",
+    "單次盤後推論時間 < 10 秒 (CPU)"
+  ],
+  "pitfalls": [
+    "資料對齊問題：不同股票上市時間不同，需向前填充或剔除",
+    "股本變化：增資/減資需調整 FDV 計算",
+    "除權息處理：股價需還原，否則因子失真",
+    "止跌漲停：漲跌停時成交量可能為 0，需特殊處理",
+    "GPU 記憶體：完整台股需 >8GB VRAM"
+  ],
+  "estimated_implementation_time": {
+    "phase1_mvp": "2-3 天（資料獲取 + 基礎因子 + CPU 訓練）",
+    "phase2_full": "1-2 週（GPU 訓練 + 12 因子 + 完整回測）",
+    "phase3_production": "2-3 週（自動化盤後推論 + 監控）"
+  }
+}

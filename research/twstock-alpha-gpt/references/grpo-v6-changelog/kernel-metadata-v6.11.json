@@ -1,0 +1,19 @@
+{
+  "id": "mhhuang14/twstock-grpo-regime-aware-factor-training-v6-9",
+  "id_no": 122964108,
+  "title": "TWStock GRPO Regime-Aware Factor Training v6.11",
+  "code_file": "twstock-grpo-regime-aware-factor-training-v6-11.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [],
+  "dataset_sources": [
+    "mhhuang14/twstock-v6-0-real-data-20stocks-5y"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": []
+}

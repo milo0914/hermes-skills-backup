@@ -1,0 +1,13 @@
+{
+  "id": "mhhuang14/twstock-grpo-v6-19-composite-score-full-fix",
+  "title": "TWStock GRPO v6 19 Composite Score Full Fix",
+  "code_file": "twstock-grpo-v6-19.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": ["mhhuang14/twstock-v6-0-real-data-20stocks-5y"],
+  "accelerator": "CPU",
+  "model_sources": []
+}

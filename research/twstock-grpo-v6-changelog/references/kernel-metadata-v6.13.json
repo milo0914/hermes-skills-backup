@@ -1,0 +1,16 @@
+{
+  "id": "mhhuang14/twstock-grpo-v6-13-complexity-reward-fix",
+  "title": "TWStock GRPO v6.13 - Complexity Reward Fix + Param Tuning",
+  "code_file": "twstock-grpo-regime-aware-factor-training-v6-13.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_tpu": "false",
+  "enable_internet": "true",
+  "dataset_sources": ["mhhuang14/twstock-v6-0-real-data-20stocks-5y"],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": [],
+  "machine_shape": "NvidiaTeslaT4"
+}
